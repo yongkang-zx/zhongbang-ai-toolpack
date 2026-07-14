@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>众邦集团 · AI赋能工具包</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-primary:#0E0C0A;
+    --bg-secondary:#161310;
+    --bg-card:#1C1914;
+    --text-primary:#EDE7DF;
+    --text-secondary:rgba(237,231,223,.65);
+    --text-dim:rgba(237,231,223,.38);
+    --gold:#D4A84B;
+    --gold-dim:rgba(212,168,75,.25);
+    --gold-faint:rgba(212,168,75,.10);
+    --accent-green:#4CAF7C;
+    --accent-blue:#5B9BD5;
+    --sidebar-w:260px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg-primary);color:var(--text-primary);font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+
+  /* 顶部栏 */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;height:56px;z-index:10;
+    background:var(--bg-primary);border-bottom:1px solid var(--gold-dim);
+    display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  }
+  .topbar .logo-area{display:flex;align-items:center;gap:12px}
+  .topbar .logo-area img{height:30px;width:auto}
+  .topbar .logo-area .title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:15px;letter-spacing:.08em;color:var(--gold)}
+  .topbar .meta{font-size:12px;color:var(--text-dim);letter-spacing:.16em;text-align:right;line-height:1.45}
+  .topbar .meta span{color:var(--gold);font-weight:600}
+  .topbar .meta-sub{font-size:10px;color:var(--text-dim);letter-spacing:.1em;margin-top:1px;opacity:.7}
+
+  /* 左侧导航 */
+  .sidebar{
+    position:fixed;top:56px;left:0;bottom:0;width:var(--sidebar-w);z-index:5;
+    background:var(--bg-secondary);border-right:1px solid var(--gold-dim);
+    overflow-y:auto;padding:16px 0;
+  }
+  .sidebar-section{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-dim);padding:16px 20px 4px}
+  .sidebar-divider{height:1px;background:var(--gold-dim);margin:8px 20px 4px}
+  .sidebar-item{
+    display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:all .2s;
+    font-size:13px;letter-spacing:.04em;color:var(--text-secondary);border-left:2px solid transparent;
+    position:relative;
+  }
+  .sidebar-item:hover{background:var(--gold-faint);color:var(--text-primary)}
+  .sidebar-item.active{background:var(--gold-faint);color:var(--gold);border-left:2px solid var(--gold);font-weight:600}
+  .sidebar-item.active::after{content:"▸";position:absolute;right:12px;font-size:12px;color:var(--gold);opacity:.7}
+  .sidebar-item .idx{font-family:"Noto Serif SC",serif;font-weight:700;font-size:11px;color:var(--gold);width:16px;text-align:center;flex-shrink:0}
+  .sidebar-item .badge{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--gold-dim);color:var(--gold);margin-left:auto;flex-shrink:0}
+
+  /* 右侧内容 */
+  .main{
+    position:fixed;top:56px;left:var(--sidebar-w);right:0;bottom:0;overflow-y:auto;
+    padding:32px 40px 60px;
+  }
+  .panel{display:none}
+  .panel.active{display:block}
+
+  /* FDE 介绍条 */
+  .fde-intro{
+    background:var(--bg-card);border:1px solid var(--gold-dim);border-radius:6px;padding:24px 28px;margin-bottom:32px;
+    display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;
+  }
+  .fde-intro .fde-def{
+    flex:1 1 240px;min-width:200px;
+  }
+  .fde-intro .fde-def h3{font-family:"Noto Serif SC",serif;font-size:16px;color:var(--gold);margin-bottom:8px}
+  .fde-intro .fde-def p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+  .fde-intro .fde-cards{flex:1 1 380px;display:flex;gap:12px;flex-wrap:wrap}
+  .fde-card{flex:1;min-width:100px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:4px;border:1px solid rgba(255,255,255,.06)}
+  .fde-card .label{font-size:10px;letter-spacing:.16em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px}
+  .fde-card .value{font-family:"Noto Serif SC",serif;font-size:14px;font-weight:700;color:var(--text-primary)}
+  .fde-card .link{font-size:11px;color:var(--accent-blue);text-decoration:underline;display:inline-block;margin-top:4px;cursor:pointer}
+  .fde-card .link:hover{color:var(--gold)}
+  .fde-duties{flex:1 1 100%;margin-top:6px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}
+  .fde-duties h4{font-size:12px;letter-spacing:.12em;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase}
+  .fde-duties p{font-size:13px;line-height:1.7;color:var(--text-secondary)}
+
+  /* 机构头部 */
+  .institution-header{margin-bottom:28px}
+  .institution-header .eyebrow{font-size:11px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+  .institution-header .ih-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:32px;color:var(--text-primary);letter-spacing:.02em}
+  .institution-header .ih-stat{font-family:"Noto Serif SC",serif;font-weight:900;font-size:24px;color:var(--gold);margin-left:16px;letter-spacing:.02em;opacity:.85;flex-shrink:0}
+  .institution-header .ih-title-row{display:flex;align-items:baseline;flex-wrap:wrap}
+  .institution-header .ih-reps{font-size:13px;color:var(--text-secondary);margin-top:8px}
+  .institution-header .ih-reps span{color:var(--gold)}
+  .institution-header .ih-hook{font-family:"Noto Serif SC",serif;font-weight:400;font-size:18px;color:var(--gold);margin-top:14px;letter-spacing:.04em;line-height:1.5;padding-left:4px;border-left:2px solid var(--gold-dim)}
+  .institution-header .ih-warn{font-size:11px;color:var(--text-dim);margin-top:10px;letter-spacing:.04em;opacity:.7}
+
+  /* ===== 模块区块（新版设计布局） ===== */
+  .module-grid{display:flex;flex-direction:column;gap:36px;max-width:1000px;margin:0 auto}
+  .mod-block{scroll-margin-top:20px}
+  .mod-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;padding-bottom:11px;border-bottom:1px solid var(--gold-dim)}
+  .mod-head .mh-num{font-family:"Noto Serif SC",serif;font-weight:700;font-size:11px;letter-spacing:.18em;color:var(--gold);background:var(--gold-faint);border:1px solid var(--gold-dim);padding:3px 9px;border-radius:3px}
+  .mod-head .mh-title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:20px;color:var(--text-primary);letter-spacing:.04em}
+  .mod-head .mh-sub{margin-left:auto;font-size:11px;color:var(--text-dim);letter-spacing:.18em;text-transform:uppercase}
+
+  /* 核心痛点 */
+  .pain-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .pain-card{position:relative;background:linear-gradient(135deg,rgba(224,103,74,.07),rgba(255,255,255,.005));border:1px solid rgba(224,103,74,.18);border-left:3px solid #E0674A;border-radius:6px;padding:16px 18px;overflow:hidden}
+  .pain-card.feature{grid-column:1 / -1;background:linear-gradient(135deg,rgba(224,103,74,.12),rgba(255,255,255,.005))}
+  .pain-card .pc-idx{font-family:"Noto Serif SC",serif;font-weight:900;font-size:11px;color:#E0846A;letter-spacing:.16em;margin-bottom:8px}
+  .pain-card .pc-text{font-size:13px;line-height:1.75;color:var(--text-secondary)}
+  .pain-card .pc-metric{display:inline-block;margin-top:10px;font-size:11px;color:#EBA88F;background:rgba(224,103,74,.14);padding:3px 10px;border-radius:3px;letter-spacing:.04em}
+  .pain-card .pc-metric b{color:#F0B5A0;font-weight:700}
+
+  /* AI 赋能场景 */
+  .scene-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .scene-card{position:relative;background:var(--bg-card);border:1px solid rgba(255,255,255,.05);border-radius:6px;padding:18px 18px 18px 58px;transition:border-color .2s,transform .2s}
+  .scene-card:hover{border-color:var(--gold-dim);transform:translateY(-2px)}
+  .scene-card.feature{grid-column:1 / -1;background:linear-gradient(135deg,var(--gold-faint),rgba(255,255,255,.005));border-color:var(--gold-dim)}
+  .scene-card .sc-num{position:absolute;left:16px;top:18px;width:28px;height:28px;border-radius:50%;border:1px solid var(--gold-dim);color:var(--gold);font-family:"Noto Serif SC",serif;font-weight:700;font-size:13px;text-align:center;line-height:26px;background:var(--bg-primary)}
+  .scene-card .sc-text{font-size:13px;line-height:1.75;color:var(--text-secondary)}
+  .scene-card .sc-link{display:block;margin-top:9px;font-size:11px;color:var(--gold);letter-spacing:.05em;opacity:.9}
+  .scene-card .sc-link::before{content:"→ 对应工具：";color:var(--text-dim);letter-spacing:.02em}
+
+  /* 推荐 Skill 工具箱 */
+  .skill-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .skill-card{display:flex;gap:14px;align-items:flex-start;background:var(--bg-card);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:16px;transition:border-color .2s,transform .2s}
+  .skill-card:hover{border-color:var(--gold-dim);transform:translateY(-2px)}
+  .skill-card .sk-ico{width:42px;height:42px;flex-shrink:0;border-radius:11px;background:linear-gradient(135deg,var(--gold-faint),rgba(212,168,75,.02));border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:"Noto Serif SC",serif;font-weight:700;color:var(--gold);font-size:16px}
+  .skill-card .sk-body{flex:1;min-width:0}
+  .skill-card .sk-name{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:5px;letter-spacing:.02em}
+  .skill-card .sk-desc{font-size:12px;line-height:1.65;color:var(--text-secondary)}
+  .skill-card .sk-tag{display:inline-block;margin-top:9px;font-size:10px;letter-spacing:.12em;color:var(--text-dim);border:1px solid rgba(255,255,255,.1);padding:2px 8px;border-radius:3px}
+
+  /* 建议行动指南 */
+  .step-row{display:flex;gap:20px;position:relative}
+  .step-row::before{content:"";position:absolute;top:12px;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+  .step{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;flex:1;position:relative;z-index:1}
+  .step .step-n{width:26px;height:26px;border-radius:50%;background:var(--bg-primary);border:2px solid var(--gold-dim);color:var(--gold);text-align:center;line-height:22px;font-size:11px;font-weight:700;flex-shrink:0}
+  .step .step-body{font-size:12px;line-height:1.6;color:var(--text-secondary)}
+  .step .step-body strong{color:var(--text-primary)}
+
+  /* 通用卡片（compact 容器） */
+  .module-card{background:var(--bg-card);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:22px 20px}
+  .module-card .mc-title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:16px;letter-spacing:.04em}
+  .institution-header .ih-tagline{font-size:11px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px}
+
+  /* 入场动画 */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .reveal{animation:fadeUp .55s cubic-bezier(0.16,1,0.3,1) both}
+  @media (prefers-reduced-motion: reduce){.reveal{animation:none}}
+
+  /* ============ FDE 专属样式 ============ */
+  .fde-wrap{max-width:1000px;margin:0 auto}
+  .fde-hero{
+    background:linear-gradient(135deg,rgba(212,168,75,.08),rgba(212,168,75,.02));
+    border:1px solid var(--gold-dim);border-radius:6px;padding:32px 36px;margin-bottom:24px;
+  }
+  .fde-hero h2{font-family:"Noto Serif SC",serif;font-weight:900;font-size:28px;color:var(--gold);margin-bottom:12px;letter-spacing:.02em}
+  .fde-hero .fde-en{font-size:12px;letter-spacing:.32em;color:var(--text-dim);text-transform:uppercase;margin-bottom:16px}
+  .fde-hero p{font-size:15px;line-height:1.85;color:var(--text-secondary);max-width:780px}
+  .fde-hero .fde-tag{display:inline-block;font-size:11px;padding:3px 10px;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);margin-right:8px;margin-top:12px;letter-spacing:.12em}
+
+  .fde-section{margin-bottom:32px}
+  .fde-section h3{font-family:"Noto Serif SC",serif;font-weight:700;font-size:18px;color:var(--text-primary);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--gold-dim);display:flex;align-items:center;gap:10px}
+  .fde-section h3 .num{font-family:"Noto Sans SC",sans-serif;font-size:11px;letter-spacing:.24em;color:var(--gold);background:var(--gold-faint);padding:3px 8px;border-radius:3px;font-weight:600}
+
+  /* JD 图片 */
+  .jd-frame{
+    background:#fff;padding:18px;border-radius:6px;
+    box-shadow:0 0 0 1px var(--gold),0 0 0 6px var(--paper),0 0 0 7px var(--gold-soft),0 20px 50px rgba(0,0,0,.5);
+    max-width:560px;margin:0 auto;
+  }
+  .jd-frame img{width:100%;display:block;border-radius:2px}
+  .jd-caption{text-align:center;margin-top:14px;font-size:12px;color:var(--text-dim);letter-spacing:.16em}
+
+  /* 薪资表 */
+  .salary-table{width:100%;border-collapse:collapse;font-size:13px}
+  .salary-table th{text-align:left;padding:12px 14px;background:var(--gold-faint);color:var(--gold);font-weight:600;letter-spacing:.08em;border-bottom:1px solid var(--gold-dim);font-size:12px;text-transform:uppercase}
+  .salary-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text-secondary);vertical-align:top}
+  .salary-table tr:hover td{background:rgba(212,168,75,.04)}
+  .salary-table .role{font-weight:600;color:var(--text-primary);min-width:130px}
+  .salary-table .comp{font-family:"Noto Serif SC",serif;color:var(--gold);font-weight:700;min-width:130px}
+  .salary-table .src{font-size:11px;color:var(--text-dim);min-width:140px}
+  .salary-table a{color:var(--accent-blue);text-decoration:underline}
+  .salary-table a:hover{color:var(--gold)}
+
+  /* 案例网格 */
+  .case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .case-card{
+    background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:5px;padding:16px 18px;
+    transition:all .2s;
+  }
+  .case-card:hover{border-color:var(--gold-dim);transform:translateY(-1px)}
+  .case-card .c-co{font-size:11px;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px}
+  .case-card .c-co strong{color:var(--gold)}
+  .case-card .c-result{font-family:"Noto Serif SC",serif;font-size:18px;font-weight:700;color:var(--gold);margin:6px 0 8px;letter-spacing:.02em}
+  .case-card .c-desc{font-size:12px;line-height:1.6;color:var(--text-secondary);margin-bottom:10px}
+  .case-card .c-link{font-size:11px;color:var(--accent-blue);text-decoration:underline;display:inline-block}
+  .case-card .c-link:hover{color:var(--gold)}
+
+  .fde-callout{
+    background:rgba(212,168,75,.05);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;padding:14px 18px;margin-top:18px;
+    font-size:13px;line-height:1.7;color:var(--text-secondary);
+  }
+  .fde-callout strong{color:var(--gold)}
+
+  /* FDE 结语 */
+  .fde-closing{
+    margin-top:28px;padding:22px 26px;border:1px solid var(--gold-dim);border-radius:6px;
+    background:linear-gradient(135deg,rgba(212,168,75,.07),rgba(212,168,75,.01));position:relative;
+  }
+  .fde-closing .fc-label{font-size:11px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+  .fde-closing p{font-size:14px;line-height:1.95;color:var(--text-secondary);max-width:840px}
+  .fde-closing strong{color:var(--gold);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-area">
+    <img src="images/logo.png" alt="众邦集团">
+    <span class="title">众邦集团 · AI 赋能工具包</span>
+  </div>
+  <div class="meta">2026.07 · <span>中高层管理者专场</span><div class="meta-sub">分享者：张鑫</div></div>
+</div>
+
+<div class="sidebar" id="sidebar"></div>
+<div class="main" id="main"></div>
+
+<script>
+const INSTITUTIONS = [
+  {
+    id: 'fde', name: '什么是 FDE', icon: '🔧', badge: '',
+    content: `<div class="fde-wrap">
+
+  <div class="fde-hero">
+    <div class="fde-en">FORWARD DEPLOYED ENGINEER · 2026</div>
+    <h2>FDE — 把 AI 带进业务现场的人</h2>
+    <p>AI Agent 时代的新型岗位：不写通用模型，不在总部做产品——而是被派驻到客户一线，把通用大模型翻译成具体业务的工作流，跑通 POC、落地生产、把价值兑现到现场。Palantir 首创，AI 时代全面兴起，需求年增 729%。</p>
+    <span class="fde-tag">AI 落地最后一公里</span>
+    <span class="fde-tag">业务 × 技术 两栖</span>
+    <span class="fde-tag">POC → 生产 → 沉淀</span>
+  </div>
+
+  <div class="fde-section">
+    <h3><span class="num">01</span> 一张图看 FDE 在做什么</h3>
+    <div class="jd-frame">
+      <img src="images/fde-jd-sample.png" alt="企业级AI & 智能体架构师 JD 样例">
+    </div>
+    <div class="jd-caption">↑ 某车企招聘的「企业级 AI & 智能体架构师」JD · 50-70K × 13 薪 = 60-90W/年 · 武汉 · 硕士 · 10年+ 经验</div>
+    <div class="fde-callout">
+      <strong>关键词：</strong>智能体 Agent / AI 解决方案 / AI 中台 / LangChain / AI 项目落地 / 多智能体协作 / 系统架构——<br>
+      这不是 AI 研究员，是<strong>把 AI 推到生产现场的工程师</strong>。对应的英文岗位就是 FDE（Forward Deployed Engineer）。
+    </div>
+  </div>
+
+  <div class="fde-section">
+    <h3><span class="num">02</span> 国内外 FDE 市场开价（2025-2026）</h3>
+    <table class="salary-table">
+      <thead>
+        <tr>
+          <th>公司 / 岗位</th>
+          <th>总包范围</th>
+          <th>说明</th>
+          <th>来源</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="role">Palantir FDE（始祖）</td>
+          <td class="comp">$135K – 238K base<br>$215K 中位 total</td>
+          <td>Base $154K + RSU $60K/yr + bonus $13K；RSU 流通股权</td>
+          <td class="src"><a href="https://fdepulse.com/salaries/palantir" target="_blank">FDE Pulse · Levels.fyi</a><br><a href="https://h1bdata.info/index.php?em=palantir+technologies+inc" target="_blank">DOL H1B 2025 公示</a></td>
+        </tr>
+        <tr>
+          <td class="role">Anthropic Applied AI</td>
+          <td class="comp">$350K – 550K</td>
+          <td>Claude 企业集成，老牌 FDE 团队扩张 5 倍</td>
+          <td class="src"><a href="https://www.extern.com/post/forward-deployed-engineer-career-guide" target="_blank">Extern 行业报告</a></td>
+        </tr>
+        <tr>
+          <td class="role">OpenAI FDE</td>
+          <td class="comp">$220K – 280K + 4年 RSU</td>
+          <td>2025 年成立 FDE 团队，年内扩至 50 人</td>
+          <td class="src"><a href="https://www.sohu.com/a/950593611_362225" target="_blank">搜狐财经 · 金融时报</a></td>
+        </tr>
+        <tr>
+          <td class="role">Databricks FDE</td>
+          <td class="comp">$200K – 350K</td>
+          <td>数据湖仓 + AI/ML 平台部署</td>
+          <td class="src"><a href="https://www.extern.com/post/forward-deployed-engineer-career-guide" target="_blank">Extern</a></td>
+        </tr>
+        <tr>
+          <td class="role">Google Cloud Senior Staff FDE</td>
+          <td class="comp">$262K – 365K</td>
+          <td>Vertex AI 企业落地</td>
+          <td class="src"><a href="https://www.extern.com/post/forward-deployed-engineer-career-guide" target="_blank">Extern · Google 招聘</a></td>
+        </tr>
+        <tr>
+          <td class="role">资深 FDE（前沿实验室）</td>
+          <td class="comp">$485K 中位 / $725K 顶</td>
+          <td>Perspective AI 2026 调查 1500 名 FDE</td>
+          <td class="src"><a href="https://www.tmtpost.com/8006341.html" target="_blank">钛媒体 · Perspective AI</a></td>
+        </tr>
+        <tr>
+          <td class="role">字节跳动 · 豆包 FDE</td>
+          <td class="comp">¥52.5W – 105W/年</td>
+          <td>35K-70K × 15 薪，国内大厂典型</td>
+          <td class="src"><a href="https://www.toutiao.com/article/7657020023113826851" target="_blank">今日头条 · 行业报道</a></td>
+        </tr>
+        <tr>
+          <td class="role">蚂蚁数科 B 端 FDE</td>
+          <td class="comp">¥60W – 90W/年</td>
+          <td>40K-60K × 15 薪，金融级 Agent 部署</td>
+          <td class="src"><a href="https://www.toutiao.com/article/7657020023113826851" target="_blank">今日头条 · 行业报道</a></td>
+        </tr>
+        <tr>
+          <td class="role">智谱华章 FDE 负责人</td>
+          <td class="comp">¥90W – 120W/年</td>
+          <td>60K-80K，AI 头部初创核心岗</td>
+          <td class="src"><a href="https://www.toutiao.com/article/7657020023113826851" target="_blank">今日头条 · 行业报道</a></td>
+        </tr>
+        <tr>
+          <td class="role">企业级 AI 架构师（JD 样例）</td>
+          <td class="comp">¥60W – 90W/年</td>
+          <td>50-70K × 13 薪 · 武汉 · 硕士 · 10年+</td>
+          <td class="src">BOSS直聘 2026</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="fde-callout">
+      <strong>市场判断：</strong>2025→2026 美国 FDE 岗位增长 <strong>729%</strong>（Indeed 数据）· 国内大厂核心岗百万起步 · 顶尖人才被猎头开出 50 万美元/年的总包挖角。供需缺口仍在大。
+    </div>
+  </div>
+
+  <div class="fde-section">
+    <h3><span class="num">03</span> 国内外 FDE 部署项目案例（带链接）</h3>
+    <div class="case-grid">
+
+      <div class="case-card">
+        <div class="c-co"><strong>美的集团</strong> · 制造业 · 国内</div>
+        <div class="c-result">7 亿元</div>
+        <div class="c-desc">2025 年美的 1.3 万个智能体在制造/家居/办公/行业赋能四大场景运行，全年提效 1500 万小时，节约 7 亿元。</div>
+        <a class="c-link" href="https://finance.sina.cn/stock/jdts/2026-04-03/detail-inhtetzi8901143.d.html" target="_blank">→ 新浪财经</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>IBM</strong> · 咨询业 · 美国</div>
+        <div class="c-result">$4.5B / 18%</div>
+        <div class="c-desc">IBM 自用「Client Zero」：4,000 个数字员工跑在 450 个项目，250 亿美元咨询开支节省 18%，2024→2025 利润增 20%。</div>
+        <a class="c-link" href="https://www.beri.net/article/ibm-manages-4000-ai-agents-employees-4-5b-saved" target="_blank">→ Beri</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>JPMorgan Chase</strong> · 金融业 · 美国</div>
+        <div class="c-result">450+ AI 部署</div>
+        <div class="c-desc">LLM Suite 日活 20 万+ 内部用户，COiN 合同审查每年省 36 万律师小时、错误率降 80%；200 亿美元年度技术预算。</div>
+        <a class="c-link" href="https://aimonk.com/agentic-ai-examples-enterprise-roi-case-studies" target="_blank">→ AIMonk 案例库</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>Klarna</strong> · 金融科技 · 瑞典</div>
+        <div class="c-result">$60M / 853 FTE</div>
+        <div class="c-desc">35 种语言 AI 客服覆盖 23 个市场，响应 11min → 2min；2025 Q3 等效替代 853 名全职员工。</div>
+        <a class="c-link" href="https://aimonk.com/agentic-ai-examples-enterprise-roi-case-studies" target="_blank">→ AIMonk</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>Microsoft 365 Copilot</strong> · 美国</div>
+        <div class="c-result">353% ROI</div>
+        <div class="c-desc">70% 财富 500 强已部署；中小企业三年 ROI 达 353%，人均月省 9 小时，营收增 2.6%、新人入职效率 +25%。</div>
+        <a class="c-link" href="https://aidatainsider.com/ai/big-techs-enterprise-ai-initiatives-in-2025-a-guide-by-business-need/" target="_blank">→ AIDataInsider</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>Wiley × Agentforce</strong> · 出版业 · 美国</div>
+        <div class="c-result">213% ROI / $230K</div>
+        <div class="c-desc">Salesforce Agentforce 部署后，员工入职时间减 50%，个案解决率 +40%，213% 投资回报 + 节省 23 万美元。</div>
+        <a class="c-link" href="https://unwire.pro/2025/10/14/salesforce-agentforce-360-enterprise-ai/ai" target="_blank">→ Unwire.pro</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>科大讯飞 × 金华婺城</strong> · 政府 · 国内</div>
+        <div class="c-result">3.8 亿元</div>
+        <div class="c-desc">「婺城数智未来」项目：数智底座+10 个垂直场景；星火智能体平台报价 250 万、AI+人社创业辅助智能体 90 万。</div>
+        <a class="c-link" href="https://so.html5.qq.com/page/real/search_news?docid=70000021_19468e8f76052565" target="_blank">→ 腾讯新闻</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>太极股份 × 国家管网</strong> · 能源 · 国内</div>
+        <div class="c-result">6205 万元</div>
+        <div class="c-desc">中电科旗下：Agent 复杂场景方案设计 + 知识库/插件/workflow 开发 + 国产化软硬件适配的全栈部署。</div>
+        <a class="c-link" href="https://gu.qq.com/resources/shy/news/detail-v2/index.html?t=1&id=SN20250812132544a6e0efc4" target="_blank">→ 腾讯证券</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>百度 × 瑞众人寿</strong> · 保险业 · 国内</div>
+        <div class="c-result">295 万元</div>
+        <div class="c-desc">Agent 智能体平台 + 知识生产运营平台，击败讯飞、小冰；投标总价 295 万，超预算线。</div>
+        <a class="c-link" href="https://applet.10100.com/article/52695427" target="_blank">→ 大数跨境</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>百度 × 重庆银行</strong> · 金融 · 国内</div>
+        <div class="c-result">240 万元</div>
+        <div class="c-desc">生成式 AI 底座 + 智能办公/知识问答/报告助手/代码助手；后续人月单价 2.7-3 万元。</div>
+        <a class="c-link" href="https://www.163.com/dy/article/KDC2A86P0511D6RL.html" target="_blank">→ 网易</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>阿里云 × 广发银行</strong> · 金融 · 国内</div>
+        <div class="c-result">209 万元</div>
+        <div class="c-desc">大模型基础平台 + 智能体场景应用全栈支撑；金融业典型「平台+应用」采购模式。</div>
+        <a class="c-link" href="https://www.toutiao.com/article/7604718265109185075" target="_blank">→ 今日头条</a>
+      </div>
+
+      <div class="case-card">
+        <div class="c-co"><strong>金融业整体</strong> · 行业 · 国内</div>
+        <div class="c-result">30W-千万级</div>
+        <div class="c-desc">艾瑞咨询：智能体应用 30-150W、平台 100-150W、全流程升级千万元级；2025 金融智能体商业化元年。</div>
+        <a class="c-link" href="https://www.toutiao.com/article/7604718265109185075" target="_blank">→ 今日头条</a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="fde-closing">
+    <div class="fc-label">结语 · CLOSING</div>
+    <p>从众邦集团内部生长出来的 FDE，才最懂我们的业务与方向。建议从一线真实场景与独有经验出发，把每一次落地都<strong>沉淀为可复用的价值</strong>，并主动把知识分享传递给更多人。期待后续的分享里，能从各机构中发掘出更优秀的人才标杆与<strong>打法萃取</strong>——彼此借鉴，共同进步。</p>
+  </div>
+
+</div>`
+  },
+  {
+    id: 'rehab', name: '众康康复医院', icon: '🏥', badge: '详', stat: '二级专科 · 自持医院',
+    reps: '洪莉萍、王晨欣',
+    tagline: '医疗底座 · 临床数据最密集 · 二级专科 · 自持医院',
+    hook: '把病历从 60 分钟压到 5 分钟，把康复方案从经验变成数据。',
+    pain: ['病历书写耗时 — 入院记录/病程记录/出院小结平均每份占用医生 45-60 分钟','康复方案个体化不足 — 依赖医生经验手动制定，缺乏多维度数据辅助对比','多学科会诊协同成本高 — 康复医师+治疗师+护士+营养师，信息整合靠微信群/纸质传阅'],
+    scenes: [
+      '病历自动生成 — 入院/病程/出院小结，医生口述+SaaS 数据 → AI 生成初稿，医生审核签发',
+      '康复方案推荐引擎 — 输入患者评估数据 → AI 基于 GBD/ICF 框架推荐个性化方案 + 证据引用',
+      '多学科会诊纪要整理 — 会诊录音 → AI 结构化纪要 + 各科室行动项自动分派',
+      '医保合规预审 — 出院单据提交前 AI 自动核验是否符合医保规则，提前拦截不合规项',
+      '质控报告周报 — 病历书写率、方案落实率等质控指标自动汇总'
+    ],
+    skills: [
+      ['病历摘要生成器','入院/病程/出院小结一键生成，支持模板定制'],
+      ['康复方案推荐助手','患者评估 → 康复方案草案 + 证据来源'],
+      ['会诊纪要整理器','多学科会诊录音 → 结构化纪要 + 行动项'],
+      ['医保合规检查器','处方/计费/出院单据 AI 合规预审'],
+      ['质控指标看板','病历质量/方案落实/不良事件自动汇总可视化']
+    ],
+    steps: [
+      ['30 天','<strong>内科/骨科试点</strong> — 2 个病区接入病历生成 + 医保预审'],
+      ['90 天','<strong>全院推广</strong> — 全科室接入，打通 HIS 系统数据'],
+      ['180 天','<strong>建立模型库</strong> — 沉淀 200+ 典型康复方案模板，可跨分院复用']
+    ]
+  },
+  {
+    id: 'nursing', name: '金华悦年护理院', icon: '🛏', badge: '详', stat: '持证95% · 五级照护',
+    reps: '胡庭芳、金映雪',
+    tagline: '标准化医养结合 · 护理流程最成熟 · 持证率 95% · 五级照护方案',
+    hook: '让护士的手从写字中解放出来，还给老人。',
+    pain: ['护理记录重复填写 — 生命体征、翻身、用药记录每日多次手写，耗护理人员 ≥1h/天','风险预警依赖人工 — 跌倒/压疮/噎食等风险识别靠经验判断，缺乏趋势分析','家属沟通碎片化 — 微信群/电话/纸质通知，信息分散，回复率低，投诉后往往查不到沟通记录'],
+    scenes: [
+      '护理记录一键生成 — 护士口述 + 监测设备数据 → AI 自动填入模板，签字确认',
+      '跌倒/压疮风险预测 — 历史事件+Morse/Braden评分变化趋势 → 提前 48h 预警',
+      '家属周报自动推送 — 长者本周身体状况+活动照片+下周安排 → 一键生成并推送至家属微信',
+      '照护等级动态调整 — 定期评估数据 → AI 比对上期变化 → 提示是否升级/降级照护等级',
+      '交接班记录智能汇总 — 各班次记录 → AI 提取关键变化，交班 2 分钟读完'
+    ],
+    skills: [
+      ['护理记录生成器','口述+监测数据 → 护理记录自动填充'],
+      ['风险评估助手','Braden/Morse 评分 → 压疮/跌倒趋势预警'],
+      ['家属沟通周报','长者周报自动生成 + 家属定向推送'],
+      ['照护等级审查器','定期评估数据 → 照护等级调整建议'],
+      ['交接班摘要工具','多班次记录 → 关键变化提取 + 待办事项']
+    ],
+    steps: [
+      ['30 天','<strong>试点 2 个病区</strong> — 接入护理记录生成 + 风险预警'],
+      ['90 天','<strong>上线家属周报</strong> — 全病区覆盖 + 家属反馈闭环'],
+      ['180 天','<strong>全流程自动化</strong> — 护理记录/风险评估/家属沟通链路打通']
+    ]
+  },
+  {
+    id: 'luobu', name: '罗埠敬老院', icon: '🏡', badge: '简', stat: '公建民营 · 乡镇标杆', compact: true,
+    reps: '李梅、张黎芳、章施佳',
+    tagline: '公建民营 · 乡镇标杆 · 资源有限但复用力极强',
+    hook: '基于业务具体场景，最大化减少使用难度、提高效率。',
+    pain: ['人力紧张 — 护理配比低于城区，每人员工干多岗','信息化基础弱 — 数字化工具使用率低，纸质记录为主'],
+    scenes: [
+      '基础照护记录语音录入 — 护理员说话 → AI 转文字填入模板，不考核打字能力',
+      '家属群发通知助手 — 节日问候/活动通知/紧急事项 → 一键群发 + 已读确认',
+      '月度安全自查清单生成 — 消防/用电/食品 → AI 生成自查表，拍照上传完成闭环'
+    ],
+    skills: [
+      ['语音照护记录','说话 → 自动生成照护记录'],
+      ['家属通知群发器','模板化通知一键群发 + 确认'],
+      ['安全自查清单','月度安全检查项目 AI 生成 + 追踪']
+    ],
+    steps: [
+      ['30 天','<strong>试点语音记录</strong> — 2 个护理员接入，每日记录时间缩短 60%'],
+      ['90 天','<strong>接入群发通知</strong> — 家属沟通从 2h 压缩到 5min'],
+      ['180 天','<strong>全部工具落地</strong> — 复制到其他同类型乡镇机构']
+    ]
+  },
+  {
+    id: 'activity', name: '金东区老年活动中心', icon: '🎯', badge: '简', stat: '银龄学堂 · 1500+学员', compact: true,
+    reps: '叶玲芳、王荣荣',
+    tagline: '文体活动策划 + 会员运营 · 银龄学堂 1500+ 学员',
+    hook: '1500 个学员的兴趣，AI 比人记得更清楚。',
+    pain: ['活动策划耗时 — 每周活动方案从 0 起草，灵感枯竭','会员触达效率低 — 1500+ 学员用微信群通知，消息沉得快'],
+    scenes: [
+      '活动方案生成器 — 输入主题/节日/季节 → AI 输出 3-5 个完整活动方案（含流程/物料/预算）',
+      '会员分层通知 — 按兴趣标签（书法/摄影/太极）定向推送活动通知',
+      '银龄学堂课程评估 — 学员反馈 → AI 推荐下期课程方向'
+    ],
+    skills: [
+      ['活动方案策划助手','主题 → 3-5 套完整活动方案'],
+      ['会员定向通知','按兴趣标签分批推送活动信息'],
+      ['课程评估分析器','学员反馈 → 课程方向推荐']
+    ],
+    steps: [
+      ['30 天','<strong>试点活动方案</strong> — 每周活动方案 AI 辅助起草'],
+      ['90 天','<strong>上线定向通知</strong> — 会员参与率提升目标 20%'],
+    ]
+  },
+  {
+    id: 'dementia', name: '金华悦年认知症专区', icon: '🧠', badge: '详', stat: 'MMSE/MoCA · 非药物干预',
+    reps: '吴佳阳',
+    tagline: '特殊病种 · 专业壁垒最高 · 行为症状管理 · 非药物干预',
+    hook: '每一个量表分数变化的背后，可能预示着一周后的危机。',
+    pain: ['评估量表手工录入 — MMSE/MoCA/CDR 等量表纸质填后人工计算，每份 ≥30min','个性化非药物干预缺乏 — 怀旧疗法/音乐/芳香等方案依赖治疗师个人经验，无系统推荐','行为症状追踪分散 — BPSD（激越/游荡/日落综合征）记录写在交班本角落，无法做趋势分析'],
+    scenes: [
+      '认知评估自动计分 — 量表问答 → AI 实时计分 + 结果解读 + 历史对比曲线',
+      '个性化非药物干预方案 — 输入长者认知档案+行为日志 → AI 推荐活动组合（怀旧/感官/运动）',
+      '行为日志智能分析 — BPSD 记录 → 触发频率/时段分布/前驱因素分析，辅助用药调整',
+      '家属健康教育材料 — 根据长者病程阶段 → AI 生成家属可理解的疾病知识+照护技巧',
+      '专区运营质量看板 — 入住率/照护等级分布/不良事件/家属满意度自动汇总'
+    ],
+    skills: [
+      ['认知评估计分器','MMSE/MoCA/CDR → 自动计分 + 曲线对比'],
+      ['非药物干预设计助手','认知档案 → 个性化活动方案推荐'],
+      ['行为日志分析器','BPSD 记录 → 趋势分析 + 干预建议'],
+      ['家属教育材料生成','病程阶段 → 定制化家属指导文档'],
+      ['专区运营看板','入住/照护/事件/满意度 → 自动汇总']
+    ],
+    steps: [
+      ['30 天','<strong>接入评估量表</strong> — MMSE/MoCA 自动计分，评估效率提升 3x'],
+      ['90 天','<strong>上线行为分析</strong> — BPSD 模式识别，辅助精准干预'],
+      ['180 天','<strong>全链路工具化</strong> — 评估→干预→追踪→家属教育 → 形成可全国输出的认知症照护 SOP']
+    ]
+  },
+  {
+    id: 'wuyi', name: '武义悦年王宅', icon: '🏘', badge: '简', stat: '异地分院 · 连锁先锋', compact: true,
+    reps: '蕾进、汤璟瑶',
+    tagline: '异地分院 · 管理复制 · 连锁化运营先锋',
+    hook: '业务线的经验，迁移为分院的能力。',
+    pain: ['运营标准同步困难 — 总部 SOP 更新传到分院靠 PDF + 培训，滞后 2-3 周','远程协同效率低 — 总部与分院开会、审批、报表全靠微信/邮件'],
+    scenes: [
+      'SOP 更新同步推送 — 总部更新 → AI 提取差异点 → 分院负责人收到变更摘要 + 行动项',
+      '月度运营数据自动汇总 — 分院数据 → AI 生成对标报告（VS 总部 VS 去年同期）',
+      '远程会议纪要自动整理 — 总部-分院周会录音 → 结构化纪要 + 待办事项分派'
+    ],
+    skills: [
+      ['SOP 同步助手','总部变更 → 分院差异摘要 + 行动项'],
+      ['分院运营对标','分院数据 → VS 总部/同期对比报告'],
+      ['远程会议纪要','会议录音 → 纪要 + 待办分派']
+    ],
+    steps: [
+      ['30 天','<strong>试点数据对标</strong> — 月度运营报告自动汇总'],
+      ['90 天','<strong>打通 SOP 同步</strong> — 总部→分院实时推送差异'],
+    ]
+  },
+  {
+    id: 'homecare', name: '居家养老', icon: '🏠', badge: '详', stat: '15分钟圈 · 上门服务',
+    reps: '杜存会、贺双、姚蝴蝶、章朵朵',
+    tagline: '15 分钟服务圈 · 4 人参会最多 · 调度+记录+家属沟通 · 上门服务 AI 重塑空间最大',
+    hook: '4 名护理员，每天几十趟上门——AI 是他们的调度员、记录员、报信员。',
+    pain: ['调度依赖微信+电话 — 每天几十趟上门服务排班，耗时 1-2h，临时变更处理混乱','服务记录后补 — 上门服务过程手写/脑记，回站后补录，遗漏率 ≥20%','异常情况报告滞后 — 长者身体异常/拒绝服务/家庭变故 → 靠护理员主动汇报，无机制保障'],
+    scenes: [
+      '智能排班调度 — 服务需求 → AI 根据距离/时长/护理员资质自动排班，临时取消自动替补',
+      '服务记录语音录入 — 上门过程说话记录 → AI 结构化填入电子档案，实时同步后台',
+      '长者异常预警推送 — 血压骤变/情绪低落/拒服频率上升 → 自动推送站长+家属',
+      '月度服务大数据报告 — 服务量/满意度/异常分布 → AI 生成运营报告，替代手工 Excel',
+      '家属满意度自动收集 — 每次服务后 → 自动推送简短问卷 + 结果汇总看板'
+    ],
+    skills: [
+      ['智能排班调度器','需求+距离+资质 → 自动排班 + 替补'],
+      ['语音服务记录','说话记录 → 结构化电子档案'],
+      ['异常预警推送','身体状况+服务状态 → 自动预警'],
+      ['月度运营报告','服务数据 → AI 生成运营分析报告'],
+      ['家属满意度收集器','服务后自动推送问卷 + 汇总看板']
+    ],
+    steps: [
+      ['30 天','<strong>试点语音记录+预警</strong> — 5 名护理员接入，记录遗漏率降到 5% 以下'],
+      ['90 天','<strong>上线智能排班</strong> — 每日调度时间从 2h 压缩到 15min'],
+      ['180 天','<strong>全链路数字化</strong> — 调度→记录→预警→报告→满意度，五环闭环']
+    ]
+  },
+  {
+    id: 'hq', name: '集团总部', icon: '🏢', badge: '详', stat: '×8 机构 · 战略中枢',
+    reps: '余建茶、徐倩瑶、赵瑾、马小静、杨佳雯、廖美、张创阔、查磊、汪青蓉、朱彩丽',
+    tagline: '战略中枢 · 10 人参会最多 · 多机构运营管理 · 决策支持与资源调配',
+    hook: '看到 7 家机构的数字，比看到 7 份 Excel 快 2 周。',
+    pain: ['多机构数据汇总低效 — 7 个业务单元的经营、财务、服务数据靠手工微信/Excel 收集，每月 10+ 个不同格式的报表需要整合','决策依赖滞后信息 — 重大决策所需的数据（入住率/利润率/不良事件趋势）通常延迟 2-4 周才能出数','跨机构经验复用困难 — 某分院做好的 SOP/照护方案/活动策划，其他分院看不到、学不会'],
+    scenes: [
+      '多机构运营仪表盘 — 7 个业务单元关键指标（入住率/营收/成本/满意度/不良事件）自动汇总可视化',
+      '月度经营分析报告 — 各机构数据 → AI 生成对标分析（VS 预算 VS 去年同期 VS 兄弟机构）',
+      '战略项目追踪仪表盘 — 积道山康养小镇、品牌连锁化等战略项目里程碑自动追踪 + 风险预警',
+      '跨机构经验库 — 各机构优秀实践/SOP/方案 → AI 提取可复用模式 + 智能推荐给其他分院',
+      '董事会汇报自动生成 — 季度经营数据 + 战略进展 → AI 生成汇报 PPT 初稿'
+    ],
+    skills: [
+      ['多机构运营看板','7 单元核心指标自动汇总 + 对标'],
+      ['经营分析助手','月度报告 AI 生成 + 同比环比对标'],
+      ['战略项目追踪器','里程碑 + 预算 + 风险实时看板'],
+      ['跨机构经验库','优秀实践提取 → 智能推荐复用'],
+      ['董事会汇报生成器','经营数据 → PPT 初稿自动生成']
+    ],
+    steps: [
+      ['30 天','<strong>接入运营看板</strong> — 3 个试点机构数据自动汇总，总部决策从 2 周延迟缩短到 T+1'],
+      ['90 天','<strong>上线对标分析</strong> — 7 机构全覆盖，月度经营分析会从准备 3 天变 2 小时'],
+      ['180 天','<strong>打通经验复用</strong> — 跨机构最佳实践库上线，新分院开业可一键导入运营模板']
+    ]
+  }
+];
+
+function renderSidebar(){
+  const sb=document.getElementById('sidebar');
+  const items=INSTITUTIONS.map((ins,i)=>`
+    <div class="sidebar-item${i===0?' active':''}" onclick="switchTab(${i})">
+      <span class="idx">${ins.icon}</span>
+      <span>${ins.name}</span>
+      ${ins.badge?`<span class="badge">${ins.badge}</span>`:''}
+    </div>
+  `);
+  items.splice(1,0,'<div class="sidebar-section">各机构赋能包</div><div class="sidebar-divider"></div>');
+  sb.innerHTML=items.join('');
+}
+
+function extractMetric(t){
+  const m=t.match(/[≥]?\d[\d\-–.%×+/ ]*?(分钟|小时|h|天|年|周|%|万|W|FTE|万小时|min)/);
+  return m?m[0].replace(/\s+/g,''):'';
+}
+function skillTag(name){
+  if(/生成|记录|录入|撰写|起草|策划|推荐|设计|摘要|纪要|整理/ .test(name)) return '生成';
+  if(/预警|检查|合规|审查|审核|预审|风控/ .test(name)) return '风控';
+  if(/分析|评估|对标|计分|追踪|看板|报告|汇总/ .test(name)) return '分析';
+  if(/同步|会议|通知|推送|沟通|调度|排班|收集/ .test(name)) return '协同';
+  return '工具';
+}
+function renderHeader(ins,sub){
+  return `
+<div class="institution-header">
+  <div class="eyebrow">${ins.icon} ${ins.id.toUpperCase()} · ${sub}</div>
+  <div class="ih-title-row"><div class="ih-title">${ins.name}</div><div class="ih-stat">${ins.stat}</div></div>
+  <div class="ih-reps">参会代表：<span>${ins.reps}</span></div>
+  <div class="ih-tagline">📍 ${ins.tagline}</div>
+  <div class="ih-hook">${ins.hook}</div>
+  <div class="ih-warn">${ins.warn||'如果不做：竞争对手可能在 6-12 个月内把这套工具变成他们的运营标准。'}</div>
+</div>`;
+}
+function renderPanel(ins){
+  if(ins.id==='fde') return ins.content;
+
+  if(ins.compact){
+    return renderHeader(ins,'AI 赋能工具包（轻量版）')+`
+<div class="module-grid">
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">01</span><span class="mh-title">核心痛点</span><span class="mh-sub">Pain Points</span></div>
+    <div class="pain-grid">
+      ${ins.pain.map((p,i)=>`
+        <div class="pain-card${i===0?' feature':''}">
+          <div class="pc-idx">PAIN ${String(i+1).padStart(2,'0')}</div>
+          <div class="pc-text">${p}</div>
+          ${extractMetric(p)?`<span class="pc-metric">当前损耗 <b>${extractMetric(p)}</b></span>`:''}
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">02</span><span class="mh-title">AI 赋能场景 & 推荐 Skill</span><span class="mh-sub">Scenarios × Tools</span></div>
+    <div class="skill-grid">
+      ${ins.scenes.map((s,i)=>{const sk=ins.skills[i];return `
+        <div class="skill-card">
+          <div class="sk-ico">${sk[0].charAt(0)}</div>
+          <div class="sk-body">
+            <div class="sk-name">${sk[0]}</div>
+            <div class="sk-desc">${s}</div>
+            <span class="sk-tag">${skillTag(sk[0])}</span>
+          </div>
+        </div>`;}).join('')}
+    </div>
+  </div>
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">03</span><span class="mh-title">建议行动指南</span><span class="mh-sub">90-Day Plan</span></div>
+    <div class="step-row">${ins.steps.map(s=>`<div class="step"><div class="step-n">${s[0].slice(0,2)}</div><div class="step-body">${s[1]}</div></div>`).join('')}</div>
+  </div>
+</div>`;
+  }
+
+  return renderHeader(ins,'AI 赋能工具包')+`
+<div class="module-grid">
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">01</span><span class="mh-title">核心痛点</span><span class="mh-sub">Pain Points</span></div>
+    <div class="pain-grid">
+      ${ins.pain.map((p,i)=>`
+        <div class="pain-card${i===0?' feature':''}">
+          <div class="pc-idx">PAIN ${String(i+1).padStart(2,'0')}</div>
+          <div class="pc-text">${p}</div>
+          ${extractMetric(p)?`<span class="pc-metric">当前损耗 <b>${extractMetric(p)}</b></span>`:''}
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">02</span><span class="mh-title">AI 赋能场景</span><span class="mh-sub">Empowerment Scenarios</span></div>
+    <div class="scene-grid">
+      ${ins.scenes.map((s,i)=>`
+        <div class="scene-card${i===0?' feature':''}">
+          <div class="sc-num">${String(i+1).padStart(2,'0')}</div>
+          <div class="sc-text">${s}</div>
+          ${ins.skills[i]?`<span class="sc-link">${ins.skills[i][0]}</span>`:''}
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">03</span><span class="mh-title">推荐 Skill 工具箱</span><span class="mh-sub">Toolkit</span></div>
+    <div class="skill-grid">
+      ${ins.skills.map((sk,i)=>`
+        <div class="skill-card">
+          <div class="sk-ico">${sk[0].charAt(0)}</div>
+          <div class="sk-body">
+            <div class="sk-name">${sk[0]}</div>
+            <div class="sk-desc">${sk[1]}</div>
+            <span class="sk-tag">${skillTag(sk[0])}</span>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="mod-block reveal">
+    <div class="mod-head"><span class="mh-num">04</span><span class="mh-title">建议行动指南</span><span class="mh-sub">90-Day Plan</span></div>
+    <div class="step-row">${ins.steps.map(s=>`<div class="step"><div class="step-n">${s[0].slice(0,2)}</div><div class="step-body">${s[1]}</div></div>`).join('')}</div>
+  </div>
+</div>`;
+}
+
+function switchTab(i){
+  document.querySelectorAll('.sidebar-item').forEach((el,j)=>el.classList.toggle('active',j===i));
+  document.getElementById('main').innerHTML=`<div class="panel active">${renderPanel(INSTITUTIONS[i])}</div>`;
+}
+
+renderSidebar();
+document.getElementById('main').innerHTML=`<div class="panel active">${renderPanel(INSTITUTIONS[0])}</div>`;
+</script>
+</body>
+</html>
