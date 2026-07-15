@@ -346,9 +346,9 @@ body{padding-bottom:90px}
 <div class="export-section">
   <div class="count" id="exportCount">0</div>
   <p>条值班记录</p>
-  <button onclick="exportCSV()">导出为 CSV（Excel 兼容）</button>
+  <button onclick="exportExcel()">导出 Excel 表格</button>
   <p style="margin-top:16px;font-size:11px;color:var(--ink3)">
-    CSV 文件含 BOM 头，双击即可用 Excel 打开<br>
+    导出带排版的 .xls 文件，双击用 Excel 打开<br>
     建议定期导出备份，浏览器本地存储有容量上限
   </p>
 </div>
@@ -528,27 +528,76 @@ function updateExportCount(){
   document.getElementById('exportCount').textContent = load().length;
 }
 
-function exportCSV(){
+function exportExcel(){
   var data = load();
   if(data.length===0){ toast('无数据可导出', true); return; }
-  var csvHeaders = fields.map(function(f){ return f.label; }).join(',');
-  var rows = [];
-  for(var i=0; i<data.length; i++){
-    var row = [];
-    for(var j=0; j<fields.length; j++){
-      var v = data[i][fields[j].key];
-      if(typeof v === 'string' && (v.includes(',') || v.includes('"') || v.includes('\n'))){
-        v = '"' + v.replace(/"/g,'""') + '"';
+
+  var sectionGroups = [
+    {title:'基本信息', fields:['f_date','f_person']},
+    {title:'病区数据 — 入院', fields:['f_nk_in','f_nk_out','f_kf_in','f_kf_out','f_gs_in','f_gs_out']},
+    {title:'病区数据 — 住院汇总', fields:['f_total_in','f_total_admit','f_total_out']},
+    {title:'急诊 & 手术', fields:['f_er_car','f_er_admit','f_surgery']},
+    {title:'门诊数据', fields:['f_op_nk','f_op_gs','f_op_zy','f_op_fk','f_op_ss','f_bc']},
+    {title:'检查 & 体检', fields:['f_ct','f_dr','f_pe']},
+    {title:'值班记录', fields:['f_note']},
+    {title:'意见或建议', fields:['f_suggest']},
+  ];
+
+  var fieldMap = {};
+  fields.forEach(function(f){ fieldMap[f.id] = f; });
+
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>院总值班日记</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>'+
+    'table{border-collapse:collapse;width:100%;font-family:"Microsoft YaHei","PingFang SC",sans-serif;font-size:11pt}'+
+    '.title-row td{background:#1A6BA8;color:#fff;font-size:13pt;font-weight:bold;text-align:center;padding:10px;border:1px solid #135587}'+
+    '.subtitle-row td{background:#E6F0F8;color:#1A2A3A;font-size:10pt;font-style:italic;text-align:center;padding:6px;border:1px solid #BCC5CF}'+
+    '.section-hdr td{background:#D0E3F2;color:#1A6BA8;font-size:11pt;font-weight:bold;padding:7px 10px;border:1px solid #BCC5CF}'+
+    '.col-hdr td{background:#1A6BA8;color:#fff;font-size:10pt;font-weight:bold;text-align:center;padding:6px 8px;border:1px solid #135587;white-space:nowrap}'+
+    '.data td{font-size:10pt;padding:5px 8px;border:1px solid #D8DEE5;text-align:center}'+
+    '.data.odd td{background:#F7FAFC}'+
+    '.data.even td{background:#FFFFFF}'+
+    '.data td.text-col{text-align:left}'+
+    '.note-row td{font-size:10pt;padding:8px 10px;border:1px solid #D8DEE5;text-align:left;vertical-align:top}'+
+    '.note-row.odd td{background:#F7FAFC}'+
+    '.note-row.even td{background:#FFFFFF}'+
+    '.note-label{color:#1A6BA8;font-weight:bold;display:block;margin-bottom:4px}'+
+    '.footer-row td{color:#8A96A4;font-size:8pt;padding:8px 10px}'+
+    '</style></head><body>';
+
+  var now = new Date().toISOString().slice(0,10);
+  html += '<table><tr class="title-row"><td colspan="99">众邦康养 · 院总值班日记</td></tr>';
+  html += '<tr class="subtitle-row"><td colspan="99">导出日期：'+now+' &nbsp;|&nbsp; 共 '+data.length+' 条记录</td></tr>';
+
+  sectionGroups.forEach(function(sg){
+    var headers = sg.fields.map(function(fid){ return fieldMap[fid].label; });
+    html += '<tr class="section-hdr"><td colspan="99">'+sg.title+'</td></tr>';
+    html += '<tr class="col-hdr">' + headers.map(function(h){ return '<td>'+h+'</td>'; }).join('') + '</tr>';
+
+    data.forEach(function(entry, di){
+      var cls = 'data ' + (di % 2 === 0 ? 'even' : 'odd');
+      var isNoteField = sg.fields[0] === 'f_note' || sg.fields[0] === 'f_suggest';
+      if(isNoteField){
+        var v = entry[sg.fields[0]] || '';
+        html += '<tr class="note-row '+(di % 2 === 0 ? 'even' : 'odd')+'"><td colspan="99"><span class="note-label">'+headers[0]+'</span>'+(v||'—')+'</td></tr>';
+      } else {
+        html += '<tr class="'+cls+'">';
+        sg.fields.forEach(function(fid){
+          var v = entry[fieldMap[fid].key];
+          var tcls = fid === 'f_date' || fid === 'f_person' ? 'text-col' : '';
+          html += '<td class="'+tcls+'">'+(v !== undefined && v !== null && v !== '' ? v : '—')+'</td>';
+        });
+        html += '</tr>';
       }
-      row.push(v);
-    }
-    rows.push(row.join(','));
-  }
-  var csv = '\uFEFF' + csvHeaders + '\n' + rows.join('\n');
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+    });
+  });
+
+  html += '<tr class="footer-row"><td colspan="99">众邦康养集团 · 总值班注意事项：① 提前10分钟上班，24小时在岗 ② 每日巡视三次（早/中/晚）③ 手机24小时畅通 ④ 次日交接，院办每月交院长审阅</td></tr>';
+  html += '</table></body></html>';
+
+  var blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
-  a.href = url; a.download = '院总值班日记_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.href = url;
+  a.download = '院总值班日记_' + now + '.xls';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   toast('导出成功');
