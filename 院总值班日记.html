@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>众邦康养 · 院总值班日记</title>
+<style>
+:root{
+  --bg:#F5F1EC;
+  --card:#FFFFFF;
+  --ink:#1A1815;
+  --ink2:#6B6560;
+  --ink3:#999388;
+  --b:#E3DDD4;
+  --b2:#D1C9BD;
+  --orange:#C04A16;
+  --orangeL:#FDF1E7;
+  --orangeS:#B04112;
+  --green:#2D7D46;
+  --red:#C0392B;
+  --blue:#3B6FB6;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+body{padding-bottom:90px}
+
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:var(--orange);color:#fff;
+  padding:0 16px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 8px rgba(192,74,22,.25);
+}
+.topbar .title{font-size:17px;font-weight:700;letter-spacing:.04em}
+.topbar .logo-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+}
+
+.tab-bar{
+  position:sticky;top:52px;z-index:15;
+  display:flex;background:#fff;border-bottom:1px solid var(--b);
+}
+.tab-bar button{
+  flex:1;border:none;background:none;
+  padding:14px 8px;font-size:14px;font-weight:500;
+  color:var(--ink2);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .2s;
+}
+.tab-bar button.active{color:var(--orange);border-bottom-color:var(--orange)}
+.tab-bar button .badge{
+  display:inline-block;background:var(--orange);color:#fff;
+  font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;
+  vertical-align:1px;min-width:22px;text-align:center;
+}
+
+.panel{display:none;padding:12px 12px 24px}
+.panel.active{display:block}
+
+.section{
+  background:var(--card);border-radius:10px;
+  padding:16px;margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.section h3{
+  font-size:14px;color:var(--orange);
+  border-left:3px solid var(--orange);
+  padding-left:10px;margin-bottom:14px;
+  font-weight:600;letter-spacing:.04em;
+}
+.section h3 .sub{font-size:12px;color:var(--ink3);font-weight:400;margin-left:6px}
+
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.form-row .field{flex:1;min-width:0}
+.form-row .field.narrow{flex:0 0 46%}
+.form-row .field.wide{flex:0 0 100%}
+.field label{
+  display:block;font-size:12px;color:var(--ink2);margin-bottom:4px;
+  font-weight:500;
+}
+.field label .req{color:var(--red)}
+.field input,.field textarea,.field select{
+  width:100%;padding:10px 12px;border:1px solid var(--b);
+  border-radius:8px;font-size:14px;color:var(--ink);
+  background:#fff;transition:border .2s;
+  font-family:inherit;
+}
+.field input:focus,.field textarea:focus{border-color:var(--orange);outline:none;box-shadow:0 0 0 3px rgba(192,74,22,.08)}
+.field input[type=number]{-moz-appearance:textfield}
+.field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.field textarea{resize:vertical;min-height:80px}
+.field .hint{font-size:11px;color:var(--ink3);margin-top:2px}
+
+.submit-row{padding:0 4px}
+.submit-row button{
+  width:100%;padding:14px;background:var(--orange);
+  color:#fff;border:none;border-radius:10px;
+  font-size:16px;font-weight:600;cursor:pointer;
+  transition:background .2s;letter-spacing:.04em;
+}
+.submit-row button:hover{background:var(--orangeS)}
+.submit-row button:active{transform:scale(.98)}
+
+/* History */
+.hist-search{
+  display:flex;gap:10px;margin-bottom:14px;
+}
+.hist-search input{
+  flex:1;padding:10px 12px;border:1px solid var(--b);
+  border-radius:8px;font-size:14px;background:#fff;
+}
+.hist-search input:focus{border-color:var(--orange);outline:none}
+
+.hist-item{
+  background:var(--card);border-radius:10px;
+  padding:14px 16px;margin-bottom:10px;
+  box-shadow:var(--shadow);cursor:pointer;
+  transition:transform .15s;
+}
+.hist-item:hover{transform:translateY(-1px)}
+.hist-item .hi-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:6px;
+}
+.hist-item .hi-date{font-weight:600;font-size:15px;color:var(--ink)}
+.hist-item .hi-person{font-size:13px;color:var(--orange);background:var(--orangeL);padding:2px 10px;border-radius:12px}
+.hist-item .hi-summary{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-item .hi-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--b)}
+.hist-item .hi-detail.open{display:block}
+.hist-item .hi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.hist-item .hi-grid .k{font-size:12px;color:var(--ink3)}
+.hist-item .hi-grid .v{font-size:13px;color:var(--ink);font-weight:500}
+.hist-item .hi-note{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.5}
+.hist-item .hi-note .label{font-size:11px;color:var(--ink3);display:block;margin-bottom:2px}
+
+.hist-empty{text-align:center;padding:60px 20px;color:var(--ink3)}
+.hist-empty .icon{font-size:40px;margin-bottom:12px}
+
+/* Export */
+.export-section{text-align:center;padding:40px 16px}
+.export-section button{
+  padding:14px 36px;background:var(--blue);color:#fff;
+  border:none;border-radius:10px;font-size:16px;
+  font-weight:600;cursor:pointer;margin:8px;
+}
+.export-section button:hover{opacity:.9}
+.export-section p{color:var(--ink2);font-size:13px;margin-top:8px}
+.export-section .count{font-size:28px;color:var(--orange);font-weight:700}
+
+/* Toast */
+.toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 24px;
+  border-radius:20px;font-size:14px;z-index:100;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.toast.show{opacity:1}
+.toast.error{background:var(--red)}
+
+/* Footer notes */
+.footer-notes{
+  background:var(--orangeL);border-radius:10px;
+  padding:14px 16px;margin-top:14px;font-size:12px;
+  color:var(--ink2);line-height:1.8;
+}
+.footer-notes p{margin-bottom:4px}
+.footer-notes p::before{content:"· ";color:var(--orange);font-weight:700}
+
+/* Confirm dialog */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:#fff;border-radius:14px;padding:24px 20px;
+  width:90%;max-width:320px;text-align:center;
+}
+.modal-box h4{font-size:16px;margin-bottom:8px;color:var(--ink)}
+.modal-box p{font-size:13px;color:var(--ink2);margin-bottom:18px}
+.modal-box .btns{display:flex;gap:10px}
+.modal-box .btns button{
+  flex:1;padding:10px;border-radius:8px;border:none;
+  font-size:14px;font-weight:600;cursor:pointer;
+}
+.modal-box .btns .btn-cancel{background:#eee;color:var(--ink2)}
+.modal-box .btns .btn-ok{background:var(--red);color:#fff}
+
+/* Fab */
+.fab{
+  position:fixed;bottom:20px;right:20px;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--orange);color:#fff;border:none;
+  font-size:22px;cursor:pointer;z-index:30;
+  box-shadow:0 4px 16px rgba(192,74,22,.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.fab:active{transform:scale(.92)}
+
+@media(min-width:600px){
+  body{max-width:600px;margin:0 auto}
+  .panel{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="title">院总值班日记</div>
+  <div class="logo-dot">ZB</div>
+</div>
+
+<div class="tab-bar">
+  <button onclick="switchTab('fill')" id="tab-fill" class="active">填写登记</button>
+  <button onclick="switchTab('hist')" id="tab-hist">历史记录 <span class="badge" id="hist-badge">0</span></button>
+  <button onclick="switchTab('export')" id="tab-export">导出数据</button>
+</div>
+
+<!-- ========== FILL PANEL ========== -->
+<div class="panel active" id="panel-fill">
+<form id="mainForm" onsubmit="return submitForm(event)">
+
+<div class="section">
+  <h3>基本信息</h3>
+  <div class="form-row">
+    <div class="field narrow">
+      <label><span class="req">*</span> 值班日期</label>
+      <input type="date" id="f_date" required>
+    </div>
+    <div class="field narrow">
+      <label><span class="req">*</span> 值班人</label>
+      <input type="text" id="f_person" placeholder="姓名" required>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>病区数据 <span class="sub">入院 / 出院</span></h3>
+  <div class="form-row">
+    <div class="field narrow"><label>内科（六七病区）入院</label><input type="number" id="f_nk_in" min="0" value="0"></div>
+    <div class="field narrow"><label>内科（六七病区）出院</label><input type="number" id="f_nk_out" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>康复科（五病区）入院</label><input type="number" id="f_kf_in" min="0" value="0"></div>
+    <div class="field narrow"><label>康复科（五病区）出院</label><input type="number" id="f_kf_out" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>骨外科（三病区）入院</label><input type="number" id="f_gs_in" min="0" value="0"></div>
+    <div class="field narrow"><label>骨外科（三病区）出院</label><input type="number" id="f_gs_out" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>住院总数</label><input type="number" id="f_total_in" min="0" value="0"></div>
+    <div class="field narrow"><label>入院总院</label><input type="number" id="f_total_admit" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>出院总数</label><input type="number" id="f_total_out" min="0" value="0"></div>
+    <div class="field narrow"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>急诊 &amp; 手术</h3>
+  <div class="form-row">
+    <div class="field narrow"><label>急诊 120 车次</label><input type="number" id="f_er_car" min="0" value="0"></div>
+    <div class="field narrow"><label>收住入院</label><input type="number" id="f_er_admit" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>手术人数</label><input type="number" id="f_surgery" min="0" value="0"></div>
+    <div class="field narrow"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>门诊数据</h3>
+  <div class="form-row">
+    <div class="field narrow"><label>内科门诊</label><input type="number" id="f_op_nk" min="0" value="0"></div>
+    <div class="field narrow"><label>骨外科门诊</label><input type="number" id="f_op_gs" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>中医门诊</label><input type="number" id="f_op_zy" min="0" value="0"></div>
+    <div class="field narrow"><label>妇科门诊</label><input type="number" id="f_op_fk" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>碎石科门诊</label><input type="number" id="f_op_ss" min="0" value="0"></div>
+    <div class="field narrow"><label>B 超</label><input type="number" id="f_bc" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>CT</label><input type="number" id="f_ct" min="0" value="0"></div>
+    <div class="field narrow"><label>DR</label><input type="number" id="f_dr" min="0" value="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="field narrow"><label>体检</label><input type="number" id="f_pe" min="0" value="0"></div>
+    <div class="field narrow"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>值班记录</h3>
+  <div class="form-row">
+    <div class="field wide">
+      <textarea id="f_note" placeholder="记录当日巡查、异常事件、交接事项等" rows="4"></textarea>
+      <div class="hint">每日巡视三次（早 / 中 / 晚），记录异常情况及处理结果</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>意见或建议</h3>
+  <div class="form-row">
+    <div class="field wide">
+      <textarea id="f_suggest" placeholder="有何意见或建议（选填）" rows="3"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="footer-notes">
+  <p>总值班每日提早 10 分钟上班，检查全院上班情况，总值班时间 24 小时</p>
+  <p>每日各巡视三次：早、中、晚上各一次</p>
+  <p>保证总值班手机 24 小时畅通，回家充满电，次日交接下一总值人员</p>
+  <p>院办每月交院长审阅公示</p>
+</div>
+
+<div class="submit-row" style="margin-top:12px">
+  <button type="submit">保存值班日记</button>
+</div>
+
+</form>
+</div>
+
+<!-- ========== HISTORY PANEL ========== -->
+<div class="panel" id="panel-hist">
+<div class="hist-search">
+  <input type="text" id="searchInput" placeholder="搜索日期 / 值班人 / 关键词" oninput="renderHistory()">
+</div>
+<div id="historyList"></div>
+</div>
+
+<!-- ========== EXPORT PANEL ========== -->
+<div class="panel" id="panel-export">
+<div class="export-section">
+  <div class="count" id="exportCount">0</div>
+  <p>条值班记录</p>
+  <button onclick="exportCSV()">导出为 CSV（Excel 兼容）</button>
+  <p style="margin-top:16px;font-size:11px;color:var(--ink3)">
+    CSV 文件含 BOM 头，双击即可用 Excel 打开<br>
+    建议定期导出备份，浏览器本地存储有容量上限
+  </p>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DELETE CONFIRM -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <h4>确认删除</h4>
+    <p>此操作不可撤销，确定删除该条值班记录？</p>
+    <div class="btns">
+      <button class="btn-cancel" onclick="closeDeleteModal()">取消</button>
+      <button class="btn-ok" id="btnDeleteConfirm">删除</button>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="switchTab('fill')">+</button>
+
+<script>
+// ==================== STORAGE ====================
+const KEY = 'zb_duty_diary';
+function load() { try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+
+// ==================== FIELD MAP ====================
+const fields = [
+  {id:'f_date', key:'date', label:'值班日期'},
+  {id:'f_person', key:'person', label:'值班人'},
+  {id:'f_nk_in', key:'nk_in', label:'内科入院'},
+  {id:'f_nk_out', key:'nk_out', label:'内科出院'},
+  {id:'f_kf_in', key:'kf_in', label:'康复科入院'},
+  {id:'f_kf_out', key:'kf_out', label:'康复科出院'},
+  {id:'f_gs_in', key:'gs_in', label:'骨外科入院'},
+  {id:'f_gs_out', key:'gs_out', label:'骨外科出院'},
+  {id:'f_total_in', key:'total_in', label:'住院总数'},
+  {id:'f_total_admit', key:'total_admit', label:'入院总院'},
+  {id:'f_total_out', key:'total_out', label:'出院总数'},
+  {id:'f_er_car', key:'er_car', label:'急诊120车次'},
+  {id:'f_er_admit', key:'er_admit', label:'收住入院'},
+  {id:'f_surgery', key:'surgery', label:'手术人数'},
+  {id:'f_op_nk', key:'op_nk', label:'内科门诊'},
+  {id:'f_op_gs', key:'op_gs', label:'骨外科门诊'},
+  {id:'f_op_zy', key:'op_zy', label:'中医门诊'},
+  {id:'f_op_fk', key:'op_fk', label:'妇科门诊'},
+  {id:'f_op_ss', key:'op_ss', label:'碎石科门诊'},
+  {id:'f_bc', key:'bc', label:'B超'},
+  {id:'f_ct', key:'ct', label:'CT'},
+  {id:'f_dr', key:'dr', label:'DR'},
+  {id:'f_pe', key:'pe', label:'体检'},
+  {id:'f_note', key:'note', label:'值班记录'},
+  {id:'f_suggest', key:'suggest', label:'意见或建议'},
+];
+
+// ==================== TOAST ====================
+function toast(msg, isErr){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (isErr ? ' error' : '');
+  clearTimeout(t._tid); t._tid = setTimeout(function(){ t.className = 'toast'; }, 2000);
+}
+
+// ==================== TAB ====================
+function switchTab(tab){
+  ['fill','hist','export'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='hist') renderHistory();
+  if(tab==='export') updateExportCount();
+  if(tab==='fill'){ document.getElementById('f_date').valueAsDate = new Date(); }
+}
+
+// ==================== SUBMIT ====================
+function submitForm(e){
+  e.preventDefault();
+  var entry = { id: Date.now(), createdAt: new Date().toISOString() };
+  for(var i=0; i<fields.length; i++){
+    var el = document.getElementById(fields[i].id);
+    var v = el.value;
+    if(el.type==='number') v = parseInt(v)||0;
+    entry[fields[i].key] = v;
+  }
+  var data = load();
+  data.unshift(entry);
+  save(data);
+  document.getElementById('mainForm').reset();
+  document.getElementById('f_date').valueAsDate = new Date();
+  toast('已保存');
+  updateBadge();
+  switchTab('hist');
+}
+
+// ==================== HISTORY ====================
+var deleteTargetId = null;
+
+function renderHistory(){
+  var data = load();
+  var q = (document.getElementById('searchInput').value||'').toLowerCase();
+  var filtered = data;
+  if(q){
+    filtered = data.filter(function(e){
+      return (e.date+'').includes(q) || (e.person+'').toLowerCase().includes(q) || (e.note+'').toLowerCase().includes(q);
+    });
+  }
+  var container = document.getElementById('historyList');
+  if(filtered.length===0){
+    container.innerHTML = '<div class="hist-empty"><div class="icon">&#x1F4D6;</div><p>' + (q ? '未找到匹配记录' : '暂无值班记录，点击右下角 + 开始填写') + '</p></div>';
+    updateBadge();
+    return;
+  }
+  var html = '';
+  for(var i=0; i<filtered.length; i++){
+    var e = filtered[i];
+    var summary = (e.note||'无值班记录').substring(0, 40);
+    var dataGrid = '';
+    var metricFields = fields.filter(function(f){ return !['f_date','f_person','f_note','f_suggest'].includes(f.id); });
+    for(var j=0; j<metricFields.length; j++){
+      dataGrid += '<div class="k">'+metricFields[j].label+'</div><div class="v">'+(e[metricFields[j].key]||0)+'</div>';
+    }
+    html += '<div class="hist-item" onclick="toggleDetail(this)">'+
+      '<div class="hi-head"><span class="hi-date">'+e.date+'</span><span class="hi-person">'+e.person+'</span></div>'+
+      '<div class="hi-summary">'+summary+'</div>'+
+      '<div class="hi-detail">'+
+        '<div class="hi-grid">'+dataGrid+'</div>';
+    if(e.note){
+      html += '<div class="hi-note"><span class="label">值班记录</span>'+e.note+'</div>';
+    }
+    if(e.suggest){
+      html += '<div class="hi-note"><span class="label">意见或建议</span>'+e.suggest+'</div>';
+    }
+    html += '<button style="margin-top:10px;padding:6px 16px;background:none;border:1px solid '+getComputedStyle(document.documentElement).getPropertyValue('--red')+';color:'+getComputedStyle(document.documentElement).getPropertyValue('--red')+';border-radius:6px;font-size:13px;cursor:pointer" onclick="event.stopPropagation();openDeleteModal('+e.id+')">删除此条</button>'+
+      '</div></div>';
+  }
+  container.innerHTML = html;
+  updateBadge();
+}
+
+function toggleDetail(el){
+  var detail = el.querySelector('.hi-detail');
+  var wasOpen = detail.classList.contains('open');
+  // close all
+  var all = document.querySelectorAll('.hi-detail');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('open');
+  if(!wasOpen) detail.classList.add('open');
+}
+
+function openDeleteModal(id){
+  deleteTargetId = id;
+  document.getElementById('deleteModal').classList.add('show');
+  document.getElementById('btnDeleteConfirm').onclick = function(){
+    var data = load();
+    data = data.filter(function(e){ return e.id !== deleteTargetId; });
+    save(data);
+    closeDeleteModal();
+    renderHistory();
+    updateBadge();
+    toast('已删除');
+  };
+}
+
+function closeDeleteModal(){
+  document.getElementById('deleteModal').classList.remove('show');
+  deleteTargetId = null;
+}
+
+// ==================== BADGE ====================
+function updateBadge(){
+  var cnt = load().length;
+  document.getElementById('hist-badge').textContent = cnt;
+}
+
+// ==================== EXPORT ====================
+function updateExportCount(){
+  document.getElementById('exportCount').textContent = load().length;
+}
+
+function exportCSV(){
+  var data = load();
+  if(data.length===0){ toast('无数据可导出', true); return; }
+  var csvHeaders = fields.map(function(f){ return f.label; }).join(',');
+  var rows = [];
+  for(var i=0; i<data.length; i++){
+    var row = [];
+    for(var j=0; j<fields.length; j++){
+      var v = data[i][fields[j].key];
+      if(typeof v === 'string' && (v.includes(',') || v.includes('"') || v.includes('\n'))){
+        v = '"' + v.replace(/"/g,'""') + '"';
+      }
+      row.push(v);
+    }
+    rows.push(row.join(','));
+  }
+  var csv = '\uFEFF' + csvHeaders + '\n' + rows.join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = '院总值班日记_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('导出成功');
+}
+
+// ==================== INIT ====================
+document.getElementById('f_date').valueAsDate = new Date();
+updateBadge();
+
+// Close modal on overlay click
+document.getElementById('deleteModal').addEventListener('click', function(e){
+  if(e.target === this) closeDeleteModal();
+});
+</script>
+</body>
+</html>
